@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { Grid, Button, Typography } from "@material-ui/core";
+import { Link } from "react-dom";
 
 export default class Room extends Component {
   constructor(props) {
@@ -8,31 +10,96 @@ export default class Room extends Component {
       guestCanPause: true,
       votesToSkip: 2,
       isHost: false,
+      isValid: true,
     };
 
     this.roomCode = this.props.match.params.roomCode;
-    this.getRoomDetails()
+    this.getRoomDetails();
+    this.leaveButtonPressed = this.leaveButtonPressed.bind(this);
   }
   getRoomDetails() {
-    fetch("/api/get-room" + "?code=" + this.roomCode).then((response) =>
-      response.json()
-    ).then((data) => {
-        this.setState({
+    fetch("/api/get-room" + "?code=" + this.roomCode).then((response) => {
+      if (response.ok) {
+        response.json().then((data) => {
+          this.setState({
             votesToSkip: data.votes_to_skip,
             guestCanPause: data.guest_can_pause,
-            isHost: data.is_host
-        })
-    })
+            isHost: data.is_host,
+            isValid: true,
+          });
+        });
+      } else {
+        this.setState({ isValid: false });
+      }
+    });
+  }
+  leaveButtonPressed() {
+    const requestOptions = {
+      method: "POST",
+      header: { "Content-Type": "application/json" },
+    };
+    fetch("/api/leave-room", requestOptions).then((response) => {
+      this.props.history.push("/");
+    });
   }
 
   render() {
+    if (!this.state.isValid) {
+      return (
+        <Grid container spacing={1}>
+          <Grid item xs={12} align="center">
+            <Typography variant="h4" component="h4">
+              Room not exist
+            </Typography>
+          </Grid>
+          <Grid item xs={12} align="center">
+          <Button variant="contained" color="secondary" to='/' component={Link}>
+            Back
+          </Button>
+          </Grid>
+        </Grid>
+      );
+    }
     return (
-      <div>
+      <Grid container spacing={1}>
+        <Grid item xs={12} align="center">
+          <Typography variant="h4" component="h4">
+            Code: {this.roomCode}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Typography variant="h6" component="h4">
+            Votes: {this.state.votesToSkip}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Typography variant="h6" component="h4">
+            guestCanPause: {this.state.guestCanPause.toString()}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Typography variant="h6" component="h4">
+            isHost: {this.state.isHost.toString()}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Button
+            color="secondary"
+            variant="contained"
+            onClick={this.leaveButtonPressed}
+          >
+            Leave
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  }
+}
+/*
+<div>
         <h3>{this.roomCode}</h3>
         <p>Votes: {this.state.votesToSkip}</p>
         <p>guestCanPause: {this.state.guestCanPause.toString()}</p>
         <p>isHost: {this.state.isHost.toString()}</p>
       </div>
-    );
-  }
-}
+  */
