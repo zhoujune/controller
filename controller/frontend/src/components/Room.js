@@ -16,7 +16,16 @@ export default class Room extends Component {
     this.roomCode = this.props.match.params.roomCode;
     this.getRoomDetails();
     this.leaveButtonPressed = this.leaveButtonPressed.bind(this);
+    this.getRoomDetails = this.getRoomDetails.bind(this);
+    this.getBack = this.getBack.bind(this);
   }
+
+  getBack() {
+    console.log('???')
+    this.props.history.push("/");
+  }
+
+
   getRoomDetails() {
     fetch("/api/get-room" + "?code=" + this.roomCode).then((response) => {
       if (response.ok) {
@@ -29,6 +38,7 @@ export default class Room extends Component {
           });
         });
       } else {
+        this.props.leaveRoomCallBack();
         this.setState({ isValid: false });
       }
     });
@@ -39,6 +49,8 @@ export default class Room extends Component {
       header: { "Content-Type": "application/json" },
     };
     fetch("/api/leave-room", requestOptions).then((response) => {
+      console.log('Leaving room')
+      this.props.leaveRoomCallBack();
       this.props.history.push("/");
     });
   }
@@ -53,9 +65,13 @@ export default class Room extends Component {
             </Typography>
           </Grid>
           <Grid item xs={12} align="center">
-          <Button variant="contained" color="secondary" to='/' component={Link}>
-            Back
-          </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={this.getBack}
+            >
+              Back
+            </Button>
           </Grid>
         </Grid>
       );
