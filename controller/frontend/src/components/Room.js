@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Grid, Button, Typography } from "@material-ui/core";
 import { Link } from "react-dom";
+import CreateRoomPage from "./CreateRoomPage";
 
 export default class Room extends Component {
   constructor(props) {
@@ -11,6 +12,7 @@ export default class Room extends Component {
       votesToSkip: 2,
       isHost: false,
       isValid: true,
+      showSetting: false,
     };
 
     this.roomCode = this.props.match.params.roomCode;
@@ -18,13 +20,59 @@ export default class Room extends Component {
     this.leaveButtonPressed = this.leaveButtonPressed.bind(this);
     this.getRoomDetails = this.getRoomDetails.bind(this);
     this.getBack = this.getBack.bind(this);
+    this.updateShowSetting = this.updateShowSetting.bind(this);
+    this.renderSetting = this.renderSetting.bind(this);
+    this.renderSettingButton = this.renderSettingButton.bind(this);
+  }
+
+  updateShowSetting(value) {
+    this.setState({
+      showSetting: value,
+    });
+  }
+
+  renderSettingButton() {
+    return (
+      <Grid item xs={12} align="center">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => this.updateShowSetting(true)}
+        >
+          Settings
+        </Button>
+      </Grid>
+    );
+  }
+
+  renderSetting() {
+    return (
+      <Grid container spacing={3}>
+        <Grid item xs={12} align="center">
+          <CreateRoomPage
+            update={true}
+            votesToSkip={this.state.votesToSkip}
+            guestCanPause={this.state.guestCanPause}
+            roomCode={this.roomCode}
+            updateCallback={() => {}}
+          ></CreateRoomPage>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => this.updateShowSetting(false)}
+          >
+            close
+          </Button>
+        </Grid>
+      </Grid>
+    );
   }
 
   getBack() {
-    console.log('???')
     this.props.history.push("/");
   }
-
 
   getRoomDetails() {
     fetch("/api/get-room" + "?code=" + this.roomCode).then((response) => {
@@ -49,7 +97,7 @@ export default class Room extends Component {
       header: { "Content-Type": "application/json" },
     };
     fetch("/api/leave-room", requestOptions).then((response) => {
-      console.log('Leaving room')
+      console.log("Leaving room");
       this.props.leaveRoomCallBack();
       this.props.history.push("/");
     });
@@ -76,6 +124,10 @@ export default class Room extends Component {
         </Grid>
       );
     }
+    if(this.state.showSetting){
+      return this.renderSetting()
+    }
+
     return (
       <Grid container spacing={1}>
         <Grid item xs={12} align="center">
@@ -98,6 +150,7 @@ export default class Room extends Component {
             isHost: {this.state.isHost.toString()}
           </Typography>
         </Grid>
+        {this.state.isHost ? this.renderSettingButton() : null}
         <Grid item xs={12} align="center">
           <Button
             color="secondary"
